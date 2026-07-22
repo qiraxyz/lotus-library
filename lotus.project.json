@@ -1,0 +1,21 @@
+{
+  "name": "lotus-library",
+  "version": "1.0.0",
+  "output": "dist/lotus-library.lua",
+  "modules": [
+    "src/Prelude.lua",
+    "src/Util/Signal.lua",
+    "src/Util/Maid.lua",
+    "src/Util/Tween.lua",
+    "src/Theme.lua",
+    "src/Components/Base.lua",
+    "src/Components/Button.lua",
+    "src/Components/Toggle.lua",
+    "src/Components/Slider.lua",
+    "src/Components/Progress.lua",
+    "src/Section.lua",
+    "src/Tab.lua",
+    "src/Window.lua",
+    "src/init.lua"
+  ]
+}

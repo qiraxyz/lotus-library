@@ -1,0 +1,38 @@
+# Python build/test caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# Editors and IDEs
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*~
+
+# Operating-system metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+
+# Roblox/Rojo generated files
+*.rbxl.lock
+*.rbxlx.lock
+sourcemap.json
+
+# Keep the generated one-file distribution tracked
+!dist/
+!dist/lotus-library.lua
