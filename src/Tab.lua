@@ -9,12 +9,13 @@ function Tab.new(window, rawOptions)
 	self._maid = Maid.new()
 	self._sections = {}
 	self.Name = options.Name or options.Title or "Tab"
+	self._icon = options.Icon
 
 	local navButton = create("TextButton", {
 		Name = "Tab_" .. self.Name,
-		Size = UDim2.new(1, 0, 0, 38),
+		Size = UDim2.new(1, 0, 0, 40),
 		AutoButtonColor = false,
-		BackgroundColor3 = theme.Accent,
+		BackgroundColor3 = theme.AccentSoft,
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		Font = Enum.Font.GothamMedium,
@@ -24,12 +25,12 @@ function Tab.new(window, rawOptions)
 		TextXAlignment = Enum.TextXAlignment.Left,
 		Parent = window._nav,
 	})
-	corner(navButton, 8)
+	corner(navButton, 6)
 	local accent = create("Frame", {
 		Name = "Accent",
 		AnchorPoint = Vector2.new(0, 0.5),
-		Position = UDim2.new(0, 0, 0.5, 0),
-		Size = UDim2.fromOffset(3, 18),
+		Position = UDim2.new(0, 5, 0.5, 0),
+		Size = UDim2.fromOffset(2, 16),
 		BackgroundColor3 = theme.Accent,
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
@@ -42,15 +43,15 @@ function Tab.new(window, rawOptions)
 		Size = UDim2.fromScale(1, 1),
 		AutomaticCanvasSize = Enum.AutomaticSize.Y,
 		CanvasSize = UDim2.new(),
-		ScrollBarThickness = 3,
+		ScrollBarThickness = 2,
 		ScrollBarImageColor3 = theme.Accent,
-		ScrollBarImageTransparency = 0.25,
+		ScrollBarImageTransparency = 0.45,
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		Visible = false,
 		Parent = window._pages,
 	})
-	padding(page, 20, 20, 16, 20)
+	padding(page, 24, 24, 20, 24)
 	create("UIListLayout", {
 		Padding = UDim.new(0, 16),
 		FillDirection = Enum.FillDirection.Vertical,
@@ -66,7 +67,7 @@ function Tab.new(window, rawOptions)
 	end))
 	self._maid:Give(navButton.MouseEnter:Connect(function()
 		if window._activeTab ~= self then
-			Motion.tween(navButton, Motion.Fast, { BackgroundTransparency = 0.84 })
+			Motion.tween(navButton, Motion.Fast, { BackgroundTransparency = 0.45 })
 		end
 	end))
 	self._maid:Give(navButton.MouseLeave:Connect(function()
@@ -81,7 +82,7 @@ function Tab:_setActive(active)
 	local theme = self._window._theme
 	self._page.Visible = active
 	Motion.tween(self._button, Motion.Normal, {
-		BackgroundTransparency = active and 0.84 or 1,
+		BackgroundTransparency = active and 0.15 or 1,
 		TextColor3 = active and theme.Text or theme.MutedText,
 	})
 	Motion.tween(self._accent, Motion.Normal, {
@@ -97,7 +98,7 @@ end
 
 function Tab:SetTitle(title)
 	self.Name = tostring(title)
-	self._button.Text = "  " .. self.Name
+	self._button.Text = "  " .. (self._icon and (self._icon .. "  ") or "") .. self.Name
 	return self
 end
 

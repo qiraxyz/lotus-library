@@ -8,6 +8,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist" / "lotus-library.lua"
 BUILD = ROOT / "scripts" / "build.py"
+EXECUTOR = ROOT / "script-test" / "executor.lua"
+CACHED_DIST = ROOT / "script-test" / "lotus-library.lua"
 
 EXPECTED_MODULES = [
     "src/Prelude.lua",
@@ -62,6 +64,7 @@ class LotusBuildTests(unittest.TestCase):
         required_contracts = [
             "function Lotus.new(",
             "function Lotus.SetTheme(",
+            "function Lotus.ResolveTheme(",
             "function Window:AddTab(",
             "function Window:SetTitle(",
             "function Window:SetSidebarTitle(",
@@ -79,6 +82,57 @@ class LotusBuildTests(unittest.TestCase):
         ]
         for contract in required_contracts:
             self.assertIn(contract, self.output)
+
+    def test_named_theme_presets_are_bundled(self) -> None:
+        for preset in (
+            "Default",
+            "Midnight",
+            "Rose",
+            "Graphite",
+            "Ocean",
+            "Emerald",
+            "Amber",
+            "Light",
+        ):
+            self.assertIn(f"\t{preset} =", self.output)
+
+        self.assertIn('if type(theme) == "string" then', self.output)
+
+    def test_modern_visual_tokens_are_applied(self) -> None:
+        for token in (
+            "theme.SurfaceMuted",
+            "theme.BorderStrong",
+            "theme.SubtleText",
+            "theme.AccentSoft",
+            "theme.Shadow",
+        ):
+            self.assertIn(token, self.output)
+
+        self.assertIn('Name = "WindowShadow"', self.output)
+
+    def test_shadow_uses_matching_size_constraints(self) -> None:
+        self.assertIn('local shadowSizeConstraint = create("UISizeConstraint"', self.output)
+        self.assertIn("self._shadowSizeConstraint = shadowSizeConstraint", self.output)
+        self.assertIn("self._shadowSizeConstraint.MinSize = Vector2.new(560, 68)", self.output)
+        self.assertIn("self._shadowSizeConstraint.MinSize = Vector2.new(560, 340)", self.output)
+
+    def test_executor_prefers_candidate_bundle_and_checks_version(self) -> None:
+        executor = EXECUTOR.read_text(encoding="utf-8")
+        self.assertIn('local EXPECTED_VERSION = "1.1.0"', executor)
+        self.assertIn('local LOCAL_LIBRARY_PATH = "script-test/lotus-library.lua"', executor)
+        self.assertIn('local EXECUTOR_LIBRARY_PATH = "lotus-library.lua"', executor)
+        self.assertIn("isfile(LOCAL_LIBRARY_PATH)", executor)
+        self.assertIn("readfile(LOCAL_LIBRARY_PATH)", executor)
+        self.assertIn("isfile(EXECUTOR_LIBRARY_PATH)", executor)
+        self.assertIn("library.Version ~= EXPECTED_VERSION", executor)
+        self.assertIn("/refs/tags/v1.1.0/dist/lotus-library.lua", executor)
+        self.assertNotIn("/refs/heads/main/dist/lotus-library.lua", executor)
+
+    def test_executor_cached_bundle_matches_distribution(self) -> None:
+        self.assertEqual(
+            CACHED_DIST.read_text(encoding="utf-8"),
+            self.output,
+        )
 
     def test_output_has_no_unresolved_build_tokens(self) -> None:
         self.assertNotIn("{{LOTUS_", self.output)

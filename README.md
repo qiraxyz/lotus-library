@@ -1,6 +1,6 @@
 # Lotus Library
 
-A modern, dependency-free Roblox Luau GUI framework for client-side menus. Lotus has a load screen, animated progress bars, sidebar navigation, tabs, sections, buttons, toggles, sliders, notifications, draggable windows, custom titles, themes, and deterministic cleanup.
+A modern, dependency-free Roblox Luau GUI framework for client-side menus. Lotus uses precise dark surfaces, restrained accent color, compact typography, soft elevation, animated controls, and deterministic cleanup in one portable file.
 
 The framework is maintained as separated source files, while consumers only need one generated file:
 
@@ -10,7 +10,7 @@ dist/lotus-library.lua
 
 ## Features
 
-- Modern dark UI with smooth tweened feedback
+- Modern Linear-inspired UI with subtle elevation and smooth tweened feedback
 - Custom window title, subtitle, sidebar title, navigation title, and brand glyph
 - Sidebar navigation with selectable tabs
 - Custom titled sections
@@ -20,9 +20,17 @@ dist/lotus-library.lua
 - Window dragging, minimizing, closing, and `RightShift` visibility toggle
 - Mouse and touch support for dragging and sliders
 - `Signal` and `Maid` primitives for events and deterministic cleanup
-- Theme overrides plus Default, Midnight, and Rose presets
+- Theme overrides plus eight named dark and light presets
 - No external runtime dependencies or network calls in the distribution
 - One-file production output with modular source code
+
+## What's new in v1.1
+
+- Refined window chrome, navigation, cards, buttons, toggles, sliders, progress bars, loader, and notifications
+- Added subtle window elevation and clearer hover/active hierarchy
+- Expanded the theme contract with `SurfaceMuted`, `BorderStrong`, `SubtleText`, `AccentSoft`, `Warning`, and `Shadow`
+- Added `Graphite`, `Ocean`, `Emerald`, `Amber`, and `Light` alongside the existing presets
+- Added named theme resolution through `Lotus.ResolveTheme`, `Lotus.SetTheme("Name")`, and `Theme = "Name"`
 
 ## Install
 
@@ -41,13 +49,19 @@ Lotus creates client UI and must normally be required from a `LocalScript`. A cu
 
 ### Single-file remote loading
 
-Host `dist/lotus-library.lua` at your own URL, then load that single file in an environment that supports HTTP source loading:
+Load the published distribution in an environment that supports HTTP source loading:
 
 ```lua
-local Lotus = loadstring(game:HttpGet("https://your-domain.example/lotus-library.lua"))()
+local Lotus = loadstring(game:HttpGet(
+    "https://raw.githubusercontent.com/qiraxyz/lotus-library/refs/tags/v1.1.0/dist/lotus-library.lua"
+))()
 ```
 
 The Lotus distribution itself does not call `HttpGet`, `loadstring`, or any executor-only API.
+
+> **Trust boundary:** downloading and executing remote source grants that artifact permission to run client code. Review it first. The example is pinned to the v1.1 release tag; use a full commit SHA when strict immutability is required. The bundled `script-test/executor.lua` prefers the local v1.1 candidate and rejects a remote response with the wrong version.
+
+For pre-release executor testing, copy `script-test/lotus-library.lua` into the executor workspace as `lotus-library.lua`, then run `script-test/executor.lua`. The remote fallback becomes available after the `v1.1.0` tag is published.
 
 ## Quick start
 
@@ -62,6 +76,7 @@ local window = Lotus.new({
     NavTitle = "Menu",
     BrandGlyph = "L",
     ToggleKey = Enum.KeyCode.RightShift,
+    Theme = "Midnight",
     Size = UDim2.fromOffset(720, 460),
     Loading = {
         Enabled = true,
@@ -151,9 +166,9 @@ Creates and returns a window.
 | `DisplayOrder` | number | `50` | `ScreenGui.DisplayOrder` |
 | `Position` | UDim2 | centered | Initial window position |
 | `Size` | UDim2 | `720 x 460` | Initial window size |
-| `SidebarWidth` | number | `184` | Sidebar width in pixels |
+| `SidebarWidth` | number | `188` | Sidebar width in pixels |
 | `ToggleKey` | Enum.KeyCode or false | `RightShift` | Show/hide hotkey; use `false` to disable |
-| `Theme` | table | active theme | Per-window color overrides |
+| `Theme` | string/table | active theme | Preset name or per-window color overrides |
 | `Loading` | boolean/table | enabled | Load screen settings |
 
 Methods:
@@ -300,28 +315,52 @@ String shorthand is supported: `window:Notify("Saved")`.
 
 ## Themes
 
-Set a global theme for windows created afterward:
+Pass a preset name directly when creating a window:
 
 ```lua
+local window = Lotus.new({
+    Theme = "Ocean",
+})
+```
+
+Built-in presets:
+
+| Preset | Appearance |
+| --- | --- |
+| `Default` | Near-black surfaces with restrained indigo accents |
+| `Midnight` | Deep navy surfaces with vivid periwinkle accents |
+| `Rose` | Warm black surfaces with rose-pink accents |
+| `Graphite` | Neutral monochrome surfaces and silver accents |
+| `Ocean` | Blue-black surfaces with sky-blue accents |
+| `Emerald` | Green-black surfaces with emerald accents |
+| `Amber` | Warm brown-black surfaces with amber accents |
+| `Light` | Soft gray canvas, white surfaces, and indigo accents |
+
+Preset tables remain available as `Lotus.Themes.Default`, `Lotus.Themes.Ocean`, and so on. `Lotus.ResolveTheme(nameOrTable)` returns a safe copy of a complete resolved theme.
+
+Set the global default for windows created afterward:
+
+```lua
+Lotus.SetTheme("Graphite")
+
+-- Table overrides are still supported.
 Lotus.SetTheme({
     Accent = Color3.fromRGB(34, 211, 238),
     AccentHover = Color3.fromRGB(103, 232, 249),
 })
 ```
 
-Use a preset per window:
+### Theme tokens
 
-```lua
-local window = Lotus.new({
-    Theme = Lotus.Themes.Midnight,
-})
-```
+| Group | Keys |
+| --- | --- |
+| Surfaces | `Background`, `Surface`, `SurfaceAlt`, `SurfaceHover`, `SurfaceMuted` |
+| Borders and depth | `Border`, `BorderStrong`, `Overlay`, `Shadow` |
+| Typography | `Text`, `MutedText`, `SubtleText` |
+| Accent | `Accent`, `AccentHover`, `AccentSoft`, `AccentText` |
+| Status | `Success`, `Warning`, `Danger` |
 
-Available color keys:
-
-`Background`, `Surface`, `SurfaceAlt`, `SurfaceHover`, `Border`, `Text`, `MutedText`, `Accent`, `AccentHover`, `AccentText`, `Success`, `Danger`, and `Overlay`.
-
-`Lotus.SetTheme` affects future windows. Pass `Theme` to customize a specific new window.
+Tables passed to `Lotus.SetTheme` inherit missing keys from `Default`; per-window override tables inherit from the active global theme. `Lotus.SetTheme` affects future windows only, while `Theme` customizes one new window.
 
 ## Project structure
 
@@ -347,6 +386,7 @@ lotus-library/
 ├─ scripts/build.py
 ├─ tests/test_build.py
 ├─ examples/basic.client.lua
+├─ script-test/executor.lua
 ├─ lotus.project.json
 └─ dist/lotus-library.lua
 ```

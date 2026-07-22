@@ -5,9 +5,9 @@ local function makeIconButton(parent, text, offset, theme)
 	local button = create("TextButton", {
 		AnchorPoint = Vector2.new(1, 0.5),
 		Position = UDim2.new(1, offset, 0.5, 0),
-		Size = UDim2.fromOffset(30, 30),
+		Size = UDim2.fromOffset(28, 28),
 		AutoButtonColor = false,
-		BackgroundColor3 = theme.SurfaceAlt,
+		BackgroundColor3 = theme.SurfaceHover,
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		Font = Enum.Font.GothamMedium,
@@ -16,10 +16,10 @@ local function makeIconButton(parent, text, offset, theme)
 		TextSize = 16,
 		Parent = parent,
 	})
-	corner(button, 7)
+	corner(button, 6)
 	button.MouseEnter:Connect(function()
 		Motion.tween(button, Motion.Fast, {
-			BackgroundTransparency = 0.15,
+			BackgroundTransparency = 0.08,
 			TextColor3 = theme.Text,
 		})
 	end)
@@ -36,7 +36,8 @@ function Window.new(rawOptions)
 	local options = rawOptions or {}
 	local self = setmetatable({}, Window)
 	self._maid = Maid.new()
-	self._theme = mergeTable(activeTheme, options.Theme)
+	self._theme = type(options.Theme) == "string" and Lotus.ResolveTheme(options.Theme)
+		or mergeTable(activeTheme, options.Theme)
 	self._tabs = {}
 	self._activeTab = nil
 	self._destroyed = false
@@ -65,18 +66,45 @@ function Window.new(rawOptions)
 	self._maid:Give(screenGui)
 	self.ScreenGui = screenGui
 
+	local theme = self._theme
+	local initialPosition = options.Position or UDim2.fromScale(0.5, 0.5)
+	local shadow = create("Frame", {
+		Name = "WindowShadow",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.new(
+			initialPosition.X.Scale,
+			initialPosition.X.Offset,
+			initialPosition.Y.Scale,
+			initialPosition.Y.Offset + 8
+		),
+		Size = self._fullSize,
+		BackgroundColor3 = theme.Shadow,
+		BackgroundTransparency = 0.52,
+		BorderSizePixel = 0,
+		Parent = screenGui,
+	})
+	corner(shadow, 16)
+	local shadowSizeConstraint = create("UISizeConstraint", {
+		MinSize = Vector2.new(560, 340),
+		MaxSize = Vector2.new(1100, 760),
+		Parent = shadow,
+	})
+	local shadowScale = create("UIScale", { Scale = 0.96, Parent = shadow })
+	self._shadow = shadow
+	self._shadowSizeConstraint = shadowSizeConstraint
+
 	local main = create("Frame", {
 		Name = "Window",
 		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = options.Position or UDim2.fromScale(0.5, 0.5),
+		Position = initialPosition,
 		Size = self._fullSize,
 		BackgroundColor3 = self._theme.Background,
 		BorderSizePixel = 0,
 		ClipsDescendants = true,
 		Parent = screenGui,
 	})
-	corner(main, 14)
-	stroke(main, self._theme.Border, 0.35, 1)
+	corner(main, 12)
+	stroke(main, theme.BorderStrong, 0.35, 1)
 	local sizeConstraint = create("UISizeConstraint", {
 		MinSize = Vector2.new(560, 340),
 		MaxSize = Vector2.new(1100, 760),
@@ -88,7 +116,7 @@ function Window.new(rawOptions)
 
 	local sidebar = create("Frame", {
 		Name = "Sidebar",
-		Size = UDim2.new(0, options.SidebarWidth or 184, 1, 0),
+		Size = UDim2.new(0, options.SidebarWidth or 188, 1, 0),
 		BackgroundColor3 = self._theme.Surface,
 		BorderSizePixel = 0,
 		Parent = main,
@@ -99,19 +127,20 @@ function Window.new(rawOptions)
 		Position = UDim2.fromScale(1, 0),
 		Size = UDim2.new(0, 1, 1, 0),
 		BackgroundColor3 = self._theme.Border,
-		BackgroundTransparency = 0.55,
+		BackgroundTransparency = 0.35,
 		BorderSizePixel = 0,
 		Parent = sidebar,
 	})
 	local brandMark = create("Frame", {
 		Name = "BrandMark",
-		Position = UDim2.fromOffset(16, 17),
-		Size = UDim2.fromOffset(30, 30),
+		Position = UDim2.fromOffset(16, 18),
+		Size = UDim2.fromOffset(32, 32),
 		BackgroundColor3 = self._theme.Accent,
 		BorderSizePixel = 0,
 		Parent = sidebar,
 	})
-	corner(brandMark, 9)
+	corner(brandMark, 8)
+	stroke(brandMark, self._theme.AccentHover, 0.58, 1)
 	create("TextLabel", {
 		Name = "Glyph",
 		Size = UDim2.fromScale(1, 1),
@@ -124,33 +153,33 @@ function Window.new(rawOptions)
 	})
 	local sidebarTitle = create("TextLabel", {
 		Name = "SidebarTitle",
-		Position = UDim2.fromOffset(56, 15),
-		Size = UDim2.new(1, -68, 0, 34),
+		Position = UDim2.fromOffset(58, 17),
+		Size = UDim2.new(1, -72, 0, 34),
 		BackgroundTransparency = 1,
-		Font = Enum.Font.GothamBold,
+		Font = Enum.Font.GothamMedium,
 		Text = options.SidebarTitle or options.Title or "LOTUS",
 		TextColor3 = self._theme.Text,
-		TextSize = 13,
+		TextSize = 14,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		TextTruncate = Enum.TextTruncate.AtEnd,
 		Parent = sidebar,
 	})
 	local navCaption = create("TextLabel", {
 		Name = "NavCaption",
-		Position = UDim2.fromOffset(16, 64),
+		Position = UDim2.fromOffset(16, 70),
 		Size = UDim2.new(1, -32, 0, 18),
 		BackgroundTransparency = 1,
 		Font = Enum.Font.GothamSemibold,
 		Text = string.upper(options.NavTitle or "Navigation"),
-		TextColor3 = self._theme.MutedText,
-		TextSize = 9,
+		TextColor3 = self._theme.SubtleText,
+		TextSize = 10,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		Parent = sidebar,
 	})
 	local nav = create("ScrollingFrame", {
 		Name = "Navigation",
-		Position = UDim2.fromOffset(12, 88),
-		Size = UDim2.new(1, -24, 1, -104),
+		Position = UDim2.fromOffset(12, 94),
+		Size = UDim2.new(1, -24, 1, -112),
 		AutomaticCanvasSize = Enum.AutomaticSize.Y,
 		CanvasSize = UDim2.new(),
 		ScrollBarThickness = 0,
@@ -168,11 +197,11 @@ function Window.new(rawOptions)
 	self._navCaption = navCaption
 	self._nav = nav
 
-	local sidebarWidth = options.SidebarWidth or 184
+	local sidebarWidth = options.SidebarWidth or 188
 	local topbar = create("Frame", {
 		Name = "Topbar",
 		Position = UDim2.fromOffset(sidebarWidth, 0),
-		Size = UDim2.new(1, -sidebarWidth, 0, 64),
+		Size = UDim2.new(1, -sidebarWidth, 0, 68),
 		BackgroundColor3 = self._theme.Background,
 		BorderSizePixel = 0,
 		Parent = main,
@@ -183,16 +212,16 @@ function Window.new(rawOptions)
 		Position = UDim2.fromScale(0, 1),
 		Size = UDim2.new(1, 0, 0, 1),
 		BackgroundColor3 = self._theme.Border,
-		BackgroundTransparency = 0.65,
+		BackgroundTransparency = 0.45,
 		BorderSizePixel = 0,
 		Parent = topbar,
 	})
 	local titleLabel = create("TextLabel", {
 		Name = "Title",
-		Position = UDim2.fromOffset(20, 12),
+		Position = UDim2.fromOffset(24, 13),
 		Size = UDim2.new(1, -120, 0, 22),
 		BackgroundTransparency = 1,
-		Font = Enum.Font.GothamBold,
+		Font = Enum.Font.GothamMedium,
 		Text = options.Title or "Lotus Menu",
 		TextColor3 = self._theme.Text,
 		TextSize = 15,
@@ -202,12 +231,12 @@ function Window.new(rawOptions)
 	})
 	local subtitleLabel = create("TextLabel", {
 		Name = "Subtitle",
-		Position = UDim2.fromOffset(20, 34),
+		Position = UDim2.fromOffset(24, 37),
 		Size = UDim2.new(1, -120, 0, 16),
 		BackgroundTransparency = 1,
 		Font = Enum.Font.Gotham,
 		Text = options.Subtitle or "Ready",
-		TextColor3 = self._theme.MutedText,
+		TextColor3 = self._theme.SubtleText,
 		TextSize = 10,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		TextTruncate = Enum.TextTruncate.AtEnd,
@@ -216,9 +245,9 @@ function Window.new(rawOptions)
 	self._titleLabel = titleLabel
 	self._subtitleLabel = subtitleLabel
 
-	local closeButton = makeIconButton(topbar, "×", -12, self._theme)
+	local closeButton = makeIconButton(topbar, "×", -16, self._theme)
 	closeButton.Name = "Close"
-	local minimizeButton = makeIconButton(topbar, "–", -48, self._theme)
+	local minimizeButton = makeIconButton(topbar, "–", -52, self._theme)
 	minimizeButton.Name = "Minimize"
 	self._maid:Give(closeButton.Activated:Connect(function()
 		self:SetVisible(false)
@@ -229,8 +258,8 @@ function Window.new(rawOptions)
 
 	local pages = create("Frame", {
 		Name = "Pages",
-		Position = UDim2.fromOffset(sidebarWidth, 64),
-		Size = UDim2.new(1, -sidebarWidth, 1, -64),
+		Position = UDim2.fromOffset(sidebarWidth, 68),
+		Size = UDim2.new(1, -sidebarWidth, 1, -68),
 		BackgroundTransparency = 1,
 		Parent = main,
 	})
@@ -240,7 +269,7 @@ function Window.new(rawOptions)
 		Name = "Notifications",
 		AnchorPoint = Vector2.new(1, 1),
 		Position = UDim2.new(1, -18, 1, -18),
-		Size = UDim2.fromOffset(290, 0),
+		Size = UDim2.fromOffset(310, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundTransparency = 1,
 		Parent = screenGui,
@@ -276,11 +305,18 @@ function Window.new(rawOptions)
 			)
 		then
 			local delta = input.Position - dragStart
-			main.Position = UDim2.new(
+			local newPosition = UDim2.new(
 				startPosition.X.Scale,
 				startPosition.X.Offset + delta.X,
 				startPosition.Y.Scale,
 				startPosition.Y.Offset + delta.Y
+			)
+			main.Position = newPosition
+			shadow.Position = UDim2.new(
+				newPosition.X.Scale,
+				newPosition.X.Offset,
+				newPosition.Y.Scale,
+				newPosition.Y.Offset + 8
 			)
 		end
 	end))
@@ -303,6 +339,7 @@ function Window.new(rawOptions)
 	end
 
 	Motion.tween(scale, Motion.Slow, { Scale = 1 })
+	Motion.tween(shadowScale, Motion.Slow, { Scale = 1 })
 	self:_setupLoader(options.Loading)
 	return self
 end
@@ -317,6 +354,7 @@ function Window:_setupLoader(rawLoading)
 	end
 	local theme = self._theme
 	self.Main.Visible = false
+	self._shadow.Visible = false
 	local overlay = create("Frame", {
 		Name = "LoadScreen",
 		Size = UDim2.fromScale(1, 1),
@@ -329,19 +367,19 @@ function Window:_setupLoader(rawLoading)
 		Name = "LoaderCard",
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.fromOffset(350, 174),
+		Size = UDim2.fromOffset(360, 180),
 		BackgroundColor3 = theme.Surface,
 		BorderSizePixel = 0,
 		Parent = overlay,
 	})
-	corner(panel, 14)
-	stroke(panel, theme.Border, 0.4, 1)
+	corner(panel, 12)
+	stroke(panel, theme.BorderStrong, 0.28, 1)
 	create("TextLabel", {
 		Name = "LoaderTitle",
 		Position = UDim2.fromOffset(24, 22),
 		Size = UDim2.new(1, -48, 0, 26),
 		BackgroundTransparency = 1,
-		Font = Enum.Font.GothamBold,
+		Font = Enum.Font.GothamMedium,
 		Text = config.Title or self._titleLabel.Text,
 		TextColor3 = theme.Text,
 		TextSize = 18,
@@ -355,7 +393,7 @@ function Window:_setupLoader(rawLoading)
 		BackgroundTransparency = 1,
 		Font = Enum.Font.Gotham,
 		Text = config.Text or "Loading interface…",
-		TextColor3 = theme.MutedText,
+		TextColor3 = theme.SubtleText,
 		TextSize = 11,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		Parent = panel,
@@ -376,12 +414,12 @@ function Window:_setupLoader(rawLoading)
 	local track = create("Frame", {
 		Name = "Track",
 		Position = UDim2.fromOffset(24, 120),
-		Size = UDim2.new(1, -48, 0, 8),
-		BackgroundColor3 = theme.Border,
+		Size = UDim2.new(1, -48, 0, 5),
+		BackgroundColor3 = theme.BorderStrong,
 		BorderSizePixel = 0,
 		Parent = panel,
 	})
-	corner(track, 4)
+	corner(track, 3)
 	local fill = create("Frame", {
 		Name = "Fill",
 		Size = UDim2.fromScale(0, 1),
@@ -389,7 +427,7 @@ function Window:_setupLoader(rawLoading)
 		BorderSizePixel = 0,
 		Parent = track,
 	})
-	corner(fill, 4)
+	corner(fill, 3)
 	self._loader = {
 		Root = overlay,
 		Panel = panel,
@@ -434,6 +472,7 @@ function Window:FinishLoading()
 	local loader = self._loader
 	if not loader then
 		self.Main.Visible = true
+		self._shadow.Visible = true
 		return self
 	end
 	self._loader = nil
@@ -445,6 +484,7 @@ function Window:FinishLoading()
 		end
 		if not self._destroyed then
 			self.Main.Visible = true
+			self._shadow.Visible = true
 		end
 	end)
 	return self
@@ -510,12 +550,17 @@ function Window:SetMinimized(minimized)
 	self._minimized = minimized
 	if minimized then
 		self._fullSize = self.Main.Size
-		self._sizeConstraint.MinSize = Vector2.new(560, 64)
+		self._sizeConstraint.MinSize = Vector2.new(560, 68)
+		self._shadowSizeConstraint.MinSize = Vector2.new(560, 68)
 	else
 		self._sizeConstraint.MinSize = Vector2.new(560, 340)
+		self._shadowSizeConstraint.MinSize = Vector2.new(560, 340)
 	end
 	Motion.tween(self.Main, Motion.Slow, {
-		Size = minimized and UDim2.new(self._fullSize.X.Scale, self._fullSize.X.Offset, 0, 64) or self._fullSize,
+		Size = minimized and UDim2.new(self._fullSize.X.Scale, self._fullSize.X.Offset, 0, 68) or self._fullSize,
+	})
+	Motion.tween(self._shadow, Motion.Slow, {
+		Size = minimized and UDim2.new(self._fullSize.X.Scale, self._fullSize.X.Offset, 0, 68) or self._fullSize,
 	})
 	return self
 end
@@ -523,28 +568,32 @@ end
 function Window:Notify(rawOptions)
 	local options = normalizeOptions(rawOptions, "Title")
 	local theme = self._theme
+	local height = options.Description and 76 or 60
 	local toast = create("Frame", {
 		Name = "Notification",
-		Size = UDim2.fromOffset(290, options.Description and 74 or 58),
-		BackgroundColor3 = theme.Surface,
+		Size = UDim2.fromOffset(310, height),
+		BackgroundColor3 = theme.SurfaceAlt,
 		BorderSizePixel = 0,
 		Parent = self._notificationHost,
 	})
-	corner(toast, 10)
-	stroke(toast, theme.Border, 0.35, 1)
-	create("Frame", {
+	corner(toast, 8)
+	stroke(toast, theme.BorderStrong, 0.32, 1)
+	local accent = create("Frame", {
 		Name = "Accent",
-		Size = UDim2.fromOffset(3, options.Description and 74 or 58),
+		AnchorPoint = Vector2.new(0, 0.5),
+		Position = UDim2.new(0, 16, 0.5, 0),
+		Size = UDim2.fromOffset(8, 8),
 		BackgroundColor3 = options.Color or theme.Accent,
 		BorderSizePixel = 0,
 		Parent = toast,
 	})
+	corner(accent, 4)
 	create("TextLabel", {
 		Name = "Title",
-		Position = UDim2.fromOffset(15, options.Description and 12 or 0),
-		Size = options.Description and UDim2.new(1, -28, 0, 20) or UDim2.new(1, -28, 1, 0),
+		Position = UDim2.fromOffset(36, options.Description and 13 or 0),
+		Size = options.Description and UDim2.new(1, -52, 0, 20) or UDim2.new(1, -52, 1, 0),
 		BackgroundTransparency = 1,
-		Font = Enum.Font.GothamSemibold,
+		Font = Enum.Font.GothamMedium,
 		Text = options.Title or "Notification",
 		TextColor3 = theme.Text,
 		TextSize = 12,
@@ -555,12 +604,12 @@ function Window:Notify(rawOptions)
 	if options.Description then
 		create("TextLabel", {
 			Name = "Description",
-			Position = UDim2.fromOffset(15, 34),
-			Size = UDim2.new(1, -28, 0, 24),
+			Position = UDim2.fromOffset(36, 36),
+			Size = UDim2.new(1, -52, 0, 24),
 			BackgroundTransparency = 1,
 			Font = Enum.Font.Gotham,
 			Text = options.Description,
-			TextColor3 = theme.MutedText,
+			TextColor3 = theme.SubtleText,
 			TextSize = 10,
 			TextWrapped = true,
 			TextXAlignment = Enum.TextXAlignment.Left,

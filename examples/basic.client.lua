@@ -8,6 +8,7 @@ local window = Lotus.new({
 	NavTitle = "Features",
 	BrandGlyph = "L",
 	ToggleKey = Enum.KeyCode.RightShift,
+	Theme = "Midnight",
 	Loading = {
 		Title = "Lotus Library",
 		Text = "Building interface…",

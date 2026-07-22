@@ -1,6 +1,6 @@
 {
   "name": "lotus-library",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "output": "dist/lotus-library.lua",
   "modules": [
     "src/Prelude.lua",

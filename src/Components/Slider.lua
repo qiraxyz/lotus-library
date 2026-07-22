@@ -4,7 +4,7 @@ Slider.__index = Slider
 function Slider.new(section, rawOptions)
 	local options = normalizeOptions(rawOptions, "Title")
 	local theme = section._window._theme
-	local card = makeCard(section, options.Description and 82 or 70)
+	local card = makeCard(section, options.Description and 84 or 72)
 	local self = setmetatable({}, Slider):_initialize(card)
 	self.Minimum = tonumber(options.Min) or 0
 	self.Maximum = tonumber(options.Max) or 100
@@ -20,7 +20,7 @@ function Slider.new(section, rawOptions)
 	local valueLabel = create("TextLabel", {
 		Name = "Value",
 		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -14, 0, 10),
+		Position = UDim2.new(1, -16, 0, 10),
 		Size = UDim2.fromOffset(80, 20),
 		BackgroundTransparency = 1,
 		Font = Enum.Font.GothamSemibold,
@@ -33,13 +33,13 @@ function Slider.new(section, rawOptions)
 	local track = create("Frame", {
 		Name = "Track",
 		AnchorPoint = Vector2.new(0, 1),
-		Position = UDim2.new(0, 14, 1, -13),
-		Size = UDim2.new(1, -28, 0, 6),
-		BackgroundColor3 = theme.Border,
+		Position = UDim2.new(0, 16, 1, -14),
+		Size = UDim2.new(1, -32, 0, 4),
+		BackgroundColor3 = theme.BorderStrong,
 		BorderSizePixel = 0,
 		Parent = card,
 	})
-	corner(track, 3)
+	corner(track, 2)
 	local fill = create("Frame", {
 		Name = "Fill",
 		Size = UDim2.fromScale(0, 1),
@@ -47,17 +47,17 @@ function Slider.new(section, rawOptions)
 		BorderSizePixel = 0,
 		Parent = track,
 	})
-	corner(fill, 3)
+	corner(fill, 2)
 	local thumb = create("Frame", {
 		Name = "Thumb",
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0, 0.5),
-		Size = UDim2.fromOffset(16, 16),
-		BackgroundColor3 = theme.Text,
+		Size = UDim2.fromOffset(14, 14),
+		BackgroundColor3 = theme.AccentText,
 		BorderSizePixel = 0,
 		Parent = track,
 	})
-	corner(thumb, 8)
+	corner(thumb, 7)
 	stroke(thumb, theme.Accent, 0.15, 2)
 
 	self.ValueLabel = valueLabel

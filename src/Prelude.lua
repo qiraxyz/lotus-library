@@ -6,7 +6,7 @@ local RunService = game:GetService("RunService")
 
 local Lotus = {
 	Name = "lotus-library",
-	Version = "1.0.0",
+	Version = "1.1.0",
 }
 
 local function cloneTable(source)

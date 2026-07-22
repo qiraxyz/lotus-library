@@ -23,14 +23,14 @@ function Section.new(tab, rawOptions)
 		BackgroundTransparency = 1,
 		Font = Enum.Font.GothamSemibold,
 		Text = string.upper(options.Title or "SECTION"),
-		TextColor3 = theme.MutedText,
-		TextSize = 10,
+		TextColor3 = theme.SubtleText,
+		TextSize = 11,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		Parent = root,
 	})
 	local body = create("Frame", {
 		Name = "Controls",
-		Position = UDim2.fromOffset(0, 26),
+		Position = UDim2.fromOffset(0, 28),
 		Size = UDim2.new(1, 0, 0, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundTransparency = 1,

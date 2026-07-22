@@ -4,7 +4,7 @@ Progress.__index = Progress
 function Progress.new(section, rawOptions)
 	local options = normalizeOptions(rawOptions, "Title")
 	local theme = section._window._theme
-	local card = makeCard(section, options.Description and 78 or 66)
+	local card = makeCard(section, options.Description and 80 or 68)
 	local self = setmetatable({}, Progress):_initialize(card)
 	self.Minimum = tonumber(options.Min) or 0
 	self.Maximum = tonumber(options.Max) or 100
@@ -17,7 +17,7 @@ function Progress.new(section, rawOptions)
 	local valueLabel = create("TextLabel", {
 		Name = "Value",
 		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -14, 0, 10),
+		Position = UDim2.new(1, -16, 0, 10),
 		Size = UDim2.fromOffset(72, 20),
 		BackgroundTransparency = 1,
 		Font = Enum.Font.GothamSemibold,
@@ -30,13 +30,13 @@ function Progress.new(section, rawOptions)
 	local track = create("Frame", {
 		Name = "Track",
 		AnchorPoint = Vector2.new(0, 1),
-		Position = UDim2.new(0, 14, 1, -13),
-		Size = UDim2.new(1, -28, 0, 7),
-		BackgroundColor3 = theme.Border,
+		Position = UDim2.new(0, 16, 1, -14),
+		Size = UDim2.new(1, -32, 0, 5),
+		BackgroundColor3 = theme.BorderStrong,
 		BorderSizePixel = 0,
 		Parent = card,
 	})
-	corner(track, 4)
+	corner(track, 3)
 	local fill = create("Frame", {
 		Name = "Fill",
 		Size = UDim2.fromScale(0, 1),
@@ -44,7 +44,7 @@ function Progress.new(section, rawOptions)
 		BorderSizePixel = 0,
 		Parent = track,
 	})
-	corner(fill, 4)
+	corner(fill, 3)
 	self.ValueLabel = valueLabel
 	self.Fill = fill
 	self:Set(options.Value ~= nil and options.Value or self.Minimum)
